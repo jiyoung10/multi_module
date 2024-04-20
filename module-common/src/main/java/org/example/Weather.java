@@ -3,7 +3,6 @@ package org.example;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "weather")
@@ -31,11 +30,17 @@ public class Weather {
     @Column(name = "data_type")
     private String dataType;
 
-    @Column(name = "base_date", columnDefinition = "TIMESTAMP")
-    private String base_date;
+    @Column(name = "base_date")
+    private String baseDate;
 
-    @Column(name = "base_time", columnDefinition = "TIMESTAMP")
-    private String base_time;
+    @Column(name = "base_time")
+    private String baseTime;
+
+    @Column(name = "fcst_time")
+    private String fcstTime;
+
+    @Column(name = "fcst_value")
+    private String fcstValue;
 
     @Column(name = "nx")
     private String nx;
@@ -51,37 +56,6 @@ public class Weather {
 
     public Weather() {
 
-    }
-    public Weather(String resultCode, String resultMsg, String pageNo, String numOfRows,
-                    String totalCount, String dataType,
-                   String base_date, String base_time,
-                   String nx, String ny, String category, String obsrValue){
-        this.resultCode = resultCode;
-        this.resultMsg = resultMsg;
-        this.pageNo = pageNo;
-        this.numOfRows = numOfRows;
-        this.totalCount = totalCount;
-        this.dataType = dataType;
-        this.base_date = base_date;
-        this.base_time = base_time;
-        this.nx= nx;
-        this.ny = ny;
-        this.category = category;
-        this.obsrValue = obsrValue;
-    }
-    public static Weather toEntity(WeatherResponse weatherResponse){
-        return new Weather(weatherResponse.getResultCode(),
-                weatherResponse.getResultMsg(),
-                weatherResponse.getPageNo(),
-                weatherResponse.getNumOfRows(),
-                weatherResponse.getTotalCount(),
-                weatherResponse.getDataType(),
-                weatherResponse.getBase_date(),
-                weatherResponse.getBase_time(),
-                weatherResponse.getNx(),
-                weatherResponse.getNy(),
-                weatherResponse.getCategory(),
-                weatherResponse.getObsrValue());
     }
 
 }

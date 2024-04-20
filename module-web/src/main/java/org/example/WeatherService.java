@@ -1,72 +1,111 @@
 package org.example;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 @Service
+@PropertySource("classpath:application.properties")
 @RequiredArgsConstructor
 public class WeatherService {
 
     private final WeatherRepository weatherRepository;
 
-    public String test() {
-        return "api의 Bean Class 테스트";
-    }
+    @Value("${weather.api.url}")
+    private String url;
 
-    private String serviceKey = "SERVICE_KEY=rGfXs9wuDm3uIXJIe1QONu39eUSPVUB4AYDNgyTdoG32%2B0%2FnJgXVKxZx683bFTmgJoQC5EVeeeFOBp0sYiR1AA%3D%3D";
-    private String url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
+    @Value("${weather.api.serviceKey}")
+    private String serviceKey;
 
     @Transactional
-    public WeatherResponse fetchAndSaveWeatherForecast(WeatherRequest weatherRequest) {
-        WeatherResponse response = new WeatherResponse();
+    public List<Weather> fetchAndSaveWeatherForecast(WeatherRequest weatherRequest) {
+        // 경기도 의정부시 문충로74 지역
+//        final String pageNo = "1";
+//        final String numOfRows = "30";
+//        final String dataType = "JSON";
+//        final String base_date = "20240420"; // 오늘 날짜
+//        final String base_time = "0500"; // 5시 기준
+//        final String nx = "38";
+//        final String ny = "127";
 
         RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 요청 파라미터 구성
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("pageNo", weatherRequest.getPageNo())
-                .queryParam("numOfRows", weatherRequest.getNumOfRows())
-                .queryParam("dataType", weatherRequest.getDataType())
-                .queryParam("base_date", weatherRequest.getBase_date())
-                .queryParam("base_time", weatherRequest.getBase_time())
-                .queryParam("nx", weatherRequest.getNx())
-                .queryParam("ny", weatherRequest.getNy());
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                url + "?serviceKey=" + serviceKey +
+                        "&pageNo=" + weatherRequest.getPageNo() +
+                        "&numOfRows=" + weatherRequest.getNumOfRows() +
+                        "&dataType=" + weatherRequest.getDataType() +
+                        "&base_date=" + weatherRequest.getBase_date() +
+                        "&base_time=" + weatherRequest.getBase_time() +
+                        "&nx=" + weatherRequest.getNx() +
+                        "&ny=" + weatherRequest.getNy(), String.class);
 
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        System.out.println("Response code: " + response.getStatusCode());
+        System.out.println("Response body: " + response.getBody());
 
-        // GET 요청 보내기
-        ResponseEntity<WeatherResponse> responseEntity = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, WeatherResponse.class);
+        // 응답을 Weather 엔티티로 매핑
+        String responseBody = response.getBody();
+        List<Weather> weather = mapResponseToWeather(responseBody);
 
-        if (responseEntity.getStatusCode() == HttpStatus.OK) {
-            WeatherResponse weatherResponse = responseEntity.getBody();
-            // 응답 처리 로직 추가
-
-            weatherRepository.save(Weather.toEntity(weatherResponse));
-
-            response.setResultCode("200");
-            response.setResultMsg("Success");
-            return response;
-        }
-
-        response.setResultCode("204");
-        response.setResultMsg("Fail");
-        return response;
+        return weather;
     }
 
+    private List<Weather> mapResponseToWeather(String responseBody) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try {
+            // JSON 응답을 JsonNode로 파싱
+            JsonNode rootNode = objectMapper.readTree(responseBody);
+
+            // 필요한 결과 값들을 추출하여 엔티티에 저장
+            Weather weather = new Weather();
+            weather.setResultCode(rootNode.path("response").path("header").path("resultCode").asText());
+            weather.setResultMsg(rootNode.path("response").path("header").path("resultMsg").asText());
+            weather.setDataType(rootNode.path("response").path("body").path("dataType").asText());
+
+            // items 배열을 가져옴
+            JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+            List<Weather> weatherList = new ArrayList<>();
+
+            // items 배열의 각 요소에 대해 반복하여 값을 추출하여 엔티티에 저장
+            for (JsonNode itemNode : itemsNode) {
+                Weather weatherItem = new Weather(); // 새로운 Weather 객체 생성
+                weatherItem.setResultCode(weather.getResultCode());
+                weatherItem.setResultMsg(weather.getResultMsg());
+                weatherItem.setDataType(weather.getDataType());
+
+                weatherItem.setBaseDate(itemNode.path("baseDate").asText());
+                weatherItem.setBaseTime(itemNode.path("baseTime").asText());
+                weatherItem.setCategory(itemNode.path("category").asText());
+                weatherItem.setFcstTime(itemNode.path("fcstTime").asText());
+                weatherItem.setFcstValue(itemNode.path("fcstValue").asText());
+                weatherItem.setNx(itemNode.path("nx").asText());
+                weatherItem.setNy(itemNode.path("ny").asText());
+                weatherItem.setObsrValue(itemNode.path("obsrValue").asText());
+
+                // 데이터베이스 저장 및 반환값 저장
+                weatherRepository.save(weatherItem);
+                weatherList.add(weatherItem);
+            }
+            return weatherList;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public List<Weather> getWeatherForecast() {
         return weatherRepository.findAll();

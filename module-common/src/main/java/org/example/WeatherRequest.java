@@ -2,7 +2,6 @@ package org.example;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
 
 @Data
 public class WeatherRequest {
@@ -20,4 +19,6 @@ public class WeatherRequest {
     private String nx;
 
     private String ny;
+
 }
+

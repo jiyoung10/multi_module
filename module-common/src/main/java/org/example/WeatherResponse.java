@@ -2,8 +2,6 @@ package org.example;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
 public class WeatherResponse {
 
@@ -22,6 +20,10 @@ public class WeatherResponse {
     private String base_date;
 
     private String base_time;
+
+    private String fcst_time;
+
+    private String fcst_value;
 
     private String nx;
 

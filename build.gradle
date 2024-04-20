@@ -4,19 +4,6 @@ plugins {
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
-//buildscript {
-//    ext {
-//        springBootVersion = '2.6.7'
-//    }
-//    repositories {
-//        mavenCentral()
-//    }
-//    dependencies {
-//        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-//        classpath "io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE"
-//    }
-//}
-
 allprojects {
     group = 'org.example'
     version = '0.0.1-SNAPSHOT'
