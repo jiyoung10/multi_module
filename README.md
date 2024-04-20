@@ -1,6 +1,26 @@
 # multi_module
 multi_module for weather project
 
+multi-module
+│
+├─ module-api
+│      ├─ api-application
+│      └─ weather-controller
+│ 
+├─ module-common
+│      ├─ common-application
+│      ├─ weather-entity
+│      ├─ weather-respository
+│      ├─ weather-request
+│      └─ weather-response
+│ 
+├─ module-web
+│      ├─ web-application
+│      └─ weather-service
+│ 
+├─ build.gradle
+└─ settings.gradle
+
 <aside>
 🔍 참고자료
 
