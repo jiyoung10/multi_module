@@ -1,6 +1,7 @@
 # multi_module
 multi_module for weather project
 
+<aside>
 multi-module
 │
 ├─ module-api
@@ -20,6 +21,7 @@ multi-module
 │ 
 ├─ build.gradle
 └─ settings.gradle
+</aside>
 
 <aside>
 🔍 참고자료
