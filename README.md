@@ -1,31 +1,9 @@
 # multi_module
 multi_module for weather project
 
+<b>프로젝트 구조</b>
 ```
-OS 볼륨에 대한 폴더 경로의 목록입니다.
-볼륨 일련 번호는 9654-6381입니다.
-C:.
-├─.gradle
-│  ├─8.4
-│  │  ├─checksums
-│  │  ├─dependencies-accessors
-│  │  ├─executionHistory
-│  │  ├─fileChanges
-│  │  ├─fileHashes
-│  │  └─vcsMetadata
-│  ├─buildOutputCleanup
-│  └─vcs-1
-├─.idea
-│  ├─dataSources
-│  │  ├─3317e5f9-1eb3-4b07-9bea-8e506bcc3c4a
-│  │  │  └─storage_v2
-│  │  │      └─_src_
-│  │  │          └─schema
-│  │  └─3bdce667-669a-4aed-ac33-9785bfdae96a
-│  │      └─storage_v2
-│  │          └─_src_
-│  │              └─schema
-│  ├─libraries
+.root
 │  └─modules
 │      ├─module-api
 │      ├─module-common
